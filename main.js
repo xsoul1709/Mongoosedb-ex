@@ -30,7 +30,12 @@ app.route("/api/login")
 
 app.route("/api/question")
     .get(function(req, res) {
-        
+        connectdb.getQuestion((listQuestions) => {
+            res.end(JSON.stringify({
+                status: 200,
+                object: listQuestions
+            }));
+        });
     })
 
 http.createServer(app).listen(8888);

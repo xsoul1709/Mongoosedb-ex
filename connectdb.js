@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var Info = require('./db/models/info');
-var Qa require('./db/models/qa')
+var Qa = require('./db/models/qa')
 
 var db = mongoose.connection;
 
@@ -13,10 +13,12 @@ db.once('close', function() {
 })
 
 module.exports = {
-    checkValidateAccount
+    checkValidateAccount,
+    getQuestion
 }
 
 // createInfoTableRow('anhph12', '1234566', 'HoaiAnh', 26);
+// createQaTableRow(3, '(1 + 9) x 2 = ?', '20');
 
 function createInfoTableRow(username, password, name, age) {
     mongoose.connect('mongodb://localhost/test');
@@ -27,6 +29,16 @@ function createInfoTableRow(username, password, name, age) {
             name: name,
             age: age
         }
+    }).save();
+    mongoose.disconnect();
+}
+
+function createQaTableRow(id, question, answer) {
+    mongoose.connect('mongodb://localhost/test');
+    var user = new Qa({
+        _id: id,
+        question: question,
+        answers: answer
     }).save();
     mongoose.disconnect();
 }
@@ -45,7 +57,16 @@ function checkValidateAccount(username, password, callback) {
 }
 
 function getQuestion(callback) {
-    mongoose.connect('mongodb://localhost/tets');
+    mongoose.connect('mongodb://localhost/test');
+
+    Qa.find({}, function(err, questions) {
+        var listQuestion = {};
+        questions.forEach(function(question) {
+            listQuestion[question._id] = question;
+        });
+
+        callback(listQuestion);
+    })
 
     mongoose.disconnect();
 }
