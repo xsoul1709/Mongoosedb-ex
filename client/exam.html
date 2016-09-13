@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Exam</title>
+    <script type="text/javascript" src="libs/angular.min.js"></script>
+    <script type="text/javascript" src="libs/jquery.min.js"></script>
+    <script>
+        ajaxcall();
+
+        function ajaxcall() {
+            $.ajax({
+                url: 'http://localhost:3000/api/question',
+                type: 'GET',
+                contentType: "application/json",
+                complete: function() {
+                    //called when complete
+                    console.log('process complete');
+                },
+                success: function(data) {
+                    console.log(data);
+                    var objectData = JSON.parse(decodeURIComponent(data));
+                    var listQuestions = objectData['object'];
+
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            });
+        }
+
+        function TodoController($scope){
+          $scope.todos = [
+            { name: 'Master HTML/CSS/Javascript', completed: true },
+            { name: 'Learn AngularJS', completed: false },
+            { name: 'Build NodeJS backend', completed: false },
+            { name: 'Get started with ExpressJS', completed: false },
+            { name: 'Setup MongoDB database', completed: false },
+            { name: 'Be awesome!', completed: false },
+          ]
+        }
+    </script>
+</head>
+
+<body ng-controller="TodoController">
+  <ul>
+    <li ng-repeat="todo in todos">
+      <input type="text" ng-model="todo.completed">
+      {% raw  %}{{ todo.name }}{% endraw %}
+    </li>
+  </ul>
+  <script>
+
+  </script>
+</body>
+
+</html>
