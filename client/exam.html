@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="Examine">
 
 <head>
     <meta charset="utf-8">
     <title>Exam</title>
-    <script type="text/javascript" src="libs/angular.min.js"></script>
-    <script type="text/javascript" src="libs/jquery.min.js"></script>
     <script>
-        ajaxcall();
-
-        function ajaxcall() {
+        function ajaxcall(callback) {
             $.ajax({
                 url: 'http://localhost:3000/api/question',
                 type: 'GET',
@@ -21,38 +17,122 @@
                 success: function(data) {
                     console.log(data);
                     var objectData = JSON.parse(decodeURIComponent(data));
-                    var listQuestions = objectData['object'];
-
+                    callback(objectData['object']);
                 },
                 error: function(err) {
                     console.log(err);
                 }
             });
         }
-
-        function TodoController($scope){
-          $scope.todos = [
-            { name: 'Master HTML/CSS/Javascript', completed: true },
-            { name: 'Learn AngularJS', completed: false },
-            { name: 'Build NodeJS backend', completed: false },
-            { name: 'Get started with ExpressJS', completed: false },
-            { name: 'Setup MongoDB database', completed: false },
-            { name: 'Be awesome!', completed: false },
-          ]
-        }
     </script>
 </head>
 
-<body ng-controller="TodoController">
-  <ul>
-    <li ng-repeat="todo in todos">
-      <input type="text" ng-model="todo.completed">
-      {% raw  %}{{ todo.name }}{% endraw %}
-    </li>
-  </ul>
-  <script>
+<body ng-controller="ExamineController">
+    <h1>
+        Answer question:
+    </h1>
+    <!-- Show questions. -->
+    <form ng-submit="sendAnswer()">
+        <ul>
+            <li ng-repeat="question in questions">
+                {{ question.question }} <input type="text" name="name" value="" ng-model="question.answer">
+                <!-- ( <a ng-click="removeFriend( friend )">delete</a> ) -->
+            </li>
+        </ul>
+        <input type="submit" value="Send Answer" />
+    </form>
 
-  </script>
+    <!-- Initialize scripts. -->
+    <script type="text/javascript" src="libs/angular.min.js"></script>
+    <script type="text/javascript" src="libs/jquery.min.js"></script>
+    <script type="text/javascript">
+        // Define the module for our AngularJS application.
+        var app = angular.module("Examine", []);
+        app.controller("ExamineController", function($scope, questionService) {
+            $scope.questions = [];
+            $scope.form = {
+                name: ""
+            };
+
+            loadRemoteData();
+
+            $scope.sendAnswer = function() {
+                questionService.sendAnswer($scope.questions)
+                    .then(
+                        function(result) {
+                            alert("Number Questions: " + $scope.questions.length + "\nCorrect answer: " + result['numberTrueAnswer']);
+                        }
+                    );
+            }
+
+            function applyRemoteData(questions) {
+                var listQuestions = [];
+                var questionData = questions["object"];
+                for (var object in questionData) {
+                    var objectQuestion = {
+                        index: object,
+                        question: questionData[object],
+                        answer: ""
+                    }
+                    listQuestions.push(objectQuestion);
+                }
+                $scope.questions = listQuestions;
+            }
+
+            function loadRemoteData() {
+                questionService.getQuestion()
+                    .then(
+                        function(questions) {
+                            applyRemoteData(questions);
+                        }
+                    );
+            }
+        });
+        app.service("questionService", function($http, $q) {
+            // Return public API
+            return ({
+                getQuestion: getQuestion,
+                sendAnswer: sendAnswer
+            });
+
+            function getQuestion() {
+                var request = $http({
+                    method: "get",
+                    url: "api/question"
+                });
+                return (request.then(handleSuccess, handleError));
+            }
+
+            function sendAnswer(answer) {
+                var request = $http({
+                    url: 'api/answer',
+                    method: "GET",
+                    params: {
+                        'answer': JSON.stringify(answer)
+                    },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                return (request.then(handleSuccess, handleError));
+            }
+
+            function handleError(response) {
+                if (!angular.isObject(response.data) ||
+                    !response.data.message
+                ) {
+                    return ($q.reject("An unknown error occurred."));
+                }
+
+                return ($q.reject(response.data.message));
+            }
+
+            function handleSuccess(response) {
+                return (response.data);
+            }
+
+        });
+    </script>
 </body>
 
 </html>

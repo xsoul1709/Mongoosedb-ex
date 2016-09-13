@@ -10,7 +10,6 @@ app.route("/api/login")
         // Get object send from AJAX
         var obj = {};
         var query = require('url').parse(req.url).query;
-        console.log(query);
         var objectData = JSON.parse(decodeURIComponent(query));
         // console.log(objectData["password"]);
         // console.log(objectData["username"]);
@@ -36,7 +35,19 @@ app.route("/api/question")
                 object: listQuestions
             }));
         });
-    })
+    });
+
+app.route("/api/answer")
+    .get(function(req, res) {
+        var query = require('url').parse(req.url).query;
+        var valueOfAnswer = query.substring('answer'.length + 1);
+        var objectData = JSON.parse(decodeURIComponent(query.substring("answer".length + 1)))
+        connectdb.answerQuestion(objectData, (result) => {
+            res.end(JSON.stringify({
+                numberTrueAnswer: result
+            }));
+        });
+    });
 
 http.createServer(app).listen(8888);
 app.listen(3000, () => {

@@ -14,7 +14,8 @@ db.once('close', function() {
 
 module.exports = {
     checkValidateAccount,
-    getQuestion
+    getQuestion,
+    answerQuestion
 }
 
 // createInfoTableRow('anhph12', '1234566', 'HoaiAnh', 26);
@@ -62,11 +63,27 @@ function getQuestion(callback) {
     Qa.find({}, function(err, questions) {
         var listQuestion = {};
         questions.forEach(function(question) {
-            listQuestion[question._id] = question;
+            listQuestion[question._id] = question.question;
         });
 
         callback(listQuestion);
     })
+
+    mongoose.disconnect();
+}
+
+function answerQuestion(answer, callback) {
+    mongoose.connect('mongodb://localhost/test');
+
+    Qa.find({}, function(err, questions) {
+        var numberTrueAnswer = 0;
+        for (var i = 0; i < questions.length; i++) {
+            if (answer[i]['answer'] == questions[i].answers) {
+                numberTrueAnswer += 1;
+            }
+        }
+        callback(numberTrueAnswer);
+    });
 
     mongoose.disconnect();
 }
